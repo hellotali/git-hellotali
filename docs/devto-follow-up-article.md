@@ -1,6 +1,18 @@
-# hellotali – AI-Assisted Mood and Cognitive Monitoring
+# Applying Vertical Slice + Clean Architecture: Planning hellotali
 
-A hobby project for AI-powered mood and cognitive monitoring to support mental health and dementia care.
+**Author:** Harry Lo
+
+**Date:** January 2026
+
+---
+
+## From Theory to Practice
+
+In my previous article, [Clean Architecture vs Vertical Slice: Pragmatism Over Dogma](https://dev.to/harrykhlo/clean-architecture-vs-vertical-slice-pragmatism-over-dogma-in-modern-software-design-2co5), I explored how these two architectural patterns aren't opposites. They're complementary tools. The real skill is knowing how to balance them responsibly in real systems.
+
+Now I'm putting that theory into practice with **hellotali**, a small hobby project I'm planning to build to support mental health and dementia care.
+
+---
 
 ## Meaning of hellotali
 
@@ -48,7 +60,7 @@ This is a slow, hobby project alongside my full-time job as a software developer
 
 ## Planned Architecture
 
-Following the principles from my article [Clean Architecture vs Vertical Slice: Pragmatism Over Dogma](https://dev.to/harrykhlo/clean-architecture-vs-vertical-slice-pragmatism-over-dogma-in-modern-software-design-2co5), hellotali plans to use **Vertical Slices for feature organization** with **Clean Architecture principles for engineering discipline**.
+Following the principles from my architecture article, hellotali plans to use **Vertical Slices for feature organization** with **Clean Architecture principles for engineering discipline**.
 
 ### Planned Project Structure
 
@@ -72,6 +84,8 @@ HelloTali.Infrastructure/    ← External dependencies
 ```
 
 ### AI Adapter Strategy (Planned)
+
+One practical example of applying Open-Closed Principle:
 
 ```
 Feature Handler
@@ -97,15 +111,6 @@ Adding a new AI provider means **adding a new class**, not modifying existing co
 
 ---
 
-## Draft Documentation
-
-- [App Plan](https://github.com/hellotali/git-hellotali/blob/main/docs/app-plan.md) — Development plan and architecture
-- [Architecture](https://github.com/hellotali/git-hellotali/blob/main/docs/architecture.md) — System diagrams
-- [Procedures](https://github.com/hellotali/git-hellotali/blob/main/docs/procedure.md) — Setup instructions (for when code exists)
-- [AI Provider Options](https://github.com/hellotali/git-hellotali/blob/main/docs/AI-provider-options–hellotali.md) — AI integration research
-
----
-
 ## Get Involved
 
 This is an open hobby project. If you're interested:
@@ -114,17 +119,13 @@ This is an open hobby project. If you're interested:
 - **Suggest resources** or guidelines I should follow
 - **Connect me** with people interested in this space
 
+**Project link:** [hellotali on GitHub](https://github.com/hellotali/git-hellotali)
+
 ---
 
 ## References
 
 - [Clean Architecture vs Vertical Slice: Pragmatism Over Dogma](https://dev.to/harrykhlo/clean-architecture-vs-vertical-slice-pragmatism-over-dogma-in-modern-software-design-2co5)
-
----
-
-## License
-
-TBD
 
 ---
 

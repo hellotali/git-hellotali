@@ -2,9 +2,9 @@
 
 ### 0. Prerequisites
 - Windows 10/11, PowerShell
-- .NET 8 SDK (`dotnet --version`)
-- Node.js 18+ and npm
-- Angular CLI (`npm i -g @angular/cli@18`) optional
+- .NET 10 SDK (`dotnet --version` should show 10.x)
+- Node.js 20+ and npm
+- Angular CLI (`npm i -g @angular/cli@21`) optional
 - Docker Desktop (for local PostgreSQL)
 - OpenAI API key (for MVP analysis)
 
@@ -132,76 +132,131 @@ git checkout main
   - `staging` → deploy to staging environment on push
   - `main` (or a release tag) → deploy to production with manual approval
 
-### 2a. Scaffold the codebase (manual)
+### 2a. Scaffold the codebase (Vertical Slice Architecture)
 
-This creates the solution/projects, installs packages, and generates the Angular app.
+This creates the solution/projects with vertical slice architecture using .NET 10 and Angular 21.
 
-1) Backend solution and projects
-```
-mkdir -Force backend
+1) Backend solution and projects (Vertical Slice Structure)
+```powershell
+# Create backend folder structure
+mkdir -Force backend/src
 cd backend
+
+# Create solution
 dotnet new sln -n HelloTali
-dotnet new classlib -n HelloTali.Domain
-dotnet new classlib -n HelloTali.Application
-dotnet new classlib -n HelloTali.Infrastructure
-dotnet new webapi -n HelloTali.Api --use-controllers
-dotnet sln add HelloTali.Domain/HelloTali.Domain.csproj
-dotnet sln add HelloTali.Application/HelloTali.Application.csproj
-dotnet sln add HelloTali.Infrastructure/HelloTali.Infrastructure.csproj
-dotnet sln add HelloTali.Api/HelloTali.Api.csproj
-dotnet add HelloTali.Application/HelloTali.Application.csproj reference HelloTali.Domain/HelloTali.Domain.csproj
-dotnet add HelloTali.Infrastructure/HelloTali.Infrastructure.csproj reference HelloTali.Domain/HelloTali.Domain.csproj
-dotnet add HelloTali.Api/HelloTali.Api.csproj reference HelloTali.Application/HelloTali.Application.csproj
-dotnet add HelloTali.Api/HelloTali.Api.csproj reference HelloTali.Infrastructure/HelloTali.Infrastructure.csproj
+
+# Create projects following vertical slice architecture
+dotnet new classlib -n HelloTali.Domain -o src/HelloTali.Domain
+dotnet new classlib -n HelloTali.Contracts -o src/HelloTali.Contracts
+dotnet new classlib -n HelloTali.Features -o src/HelloTali.Features
+dotnet new classlib -n HelloTali.Infrastructure -o src/HelloTali.Infrastructure
+dotnet new web -n HelloTali.Api -o src/HelloTali.Api
+
+# Add projects to solution
+dotnet sln add src/HelloTali.Domain/HelloTali.Domain.csproj
+dotnet sln add src/HelloTali.Contracts/HelloTali.Contracts.csproj
+dotnet sln add src/HelloTali.Features/HelloTali.Features.csproj
+dotnet sln add src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj
+dotnet sln add src/HelloTali.Api/HelloTali.Api.csproj
+
+# Add project references (Vertical Slice dependencies)
+# Domain has no dependencies (pure business logic)
+# Contracts depends on Domain
+dotnet add src/HelloTali.Contracts/HelloTali.Contracts.csproj reference src/HelloTali.Domain/HelloTali.Domain.csproj
+# Features depends on Domain and Contracts
+dotnet add src/HelloTali.Features/HelloTali.Features.csproj reference src/HelloTali.Domain/HelloTali.Domain.csproj
+dotnet add src/HelloTali.Features/HelloTali.Features.csproj reference src/HelloTali.Contracts/HelloTali.Contracts.csproj
+# Infrastructure implements Contracts
+dotnet add src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj reference src/HelloTali.Domain/HelloTali.Domain.csproj
+dotnet add src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj reference src/HelloTali.Contracts/HelloTali.Contracts.csproj
+# Api references everything
+dotnet add src/HelloTali.Api/HelloTali.Api.csproj reference src/HelloTali.Features/HelloTali.Features.csproj
+dotnet add src/HelloTali.Api/HelloTali.Api.csproj reference src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj
 ```
 
-2) Backend packages (EF Core PostgreSQL, Swagger)
-```
-dotnet add HelloTali.Infrastructure/HelloTali.Infrastructure.csproj package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.6
-dotnet add HelloTali.Infrastructure/HelloTali.Infrastructure.csproj package Microsoft.EntityFrameworkCore.Design --version 8.0.6
-dotnet add HelloTali.Api/HelloTali.Api.csproj package Swashbuckle.AspNetCore --version 6.6.2
+2) Backend packages (.NET 10, EF Core PostgreSQL, OpenAPI)
+```powershell
+# Infrastructure packages
+dotnet add src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj package Npgsql.EntityFrameworkCore.PostgreSQL
+dotnet add src/HelloTali.Infrastructure/HelloTali.Infrastructure.csproj package Microsoft.EntityFrameworkCore.Design
+
+# API packages
+dotnet add src/HelloTali.Api/HelloTali.Api.csproj package Swashbuckle.AspNetCore
+
+# Install EF Core tools globally
 dotnet tool install --global dotnet-ef
 ```
 
-3) Backend initial code to create (files to add)
-- `HelloTali.Domain/Entities/CheckIn.cs` and `AnalysisResult.cs`
-- `HelloTali.Application/AI/IAiAnalyzer.cs`
-- `HelloTali.Infrastructure/Data/HelloTaliDbContext.cs` (DbSets for `CheckIn`, `AnalysisResult`)
-- `HelloTali.Infrastructure/AI/OpenAiGptAnalyzer.cs` (reads `OPENAI_API_KEY`, model name)
-- `HelloTali.Api/Controllers/CheckInsController.cs`: `POST /checkins`
-- `HelloTali.Api/Controllers/TrendsController.cs`: `GET /trends`
-- Configure DI in `Program.cs`: register DbContext (Npgsql with `DATABASE_URL`), register `IAiAnalyzer` → OpenAI implementation by default, add CORS for `http://localhost:4200`, enable Swagger in Development.
+3) Create folder structure for vertical slices
+```powershell
+# Features folder structure
+mkdir -Force src/HelloTali.Features/CheckIn/CreateCheckIn
+mkdir -Force src/HelloTali.Features/CheckIn/GetCheckIn
+mkdir -Force src/HelloTali.Features/CheckIn/Models
+mkdir -Force src/HelloTali.Features/Trends/GetTrends
+mkdir -Force src/HelloTali.Features/Trends/Models
+mkdir -Force src/HelloTali.Features/Billing/GetUsage
+mkdir -Force src/HelloTali.Features/Billing/Models
+
+# Domain folder structure
+mkdir -Force src/HelloTali.Domain/Entities
+mkdir -Force src/HelloTali.Domain/ValueObjects
+mkdir -Force src/HelloTali.Domain/Services
+
+# Contracts folder structure
+mkdir -Force src/HelloTali.Contracts/AI
+mkdir -Force src/HelloTali.Contracts/Persistence
+mkdir -Force src/HelloTali.Contracts/Services
+
+# Infrastructure folder structure
+mkdir -Force src/HelloTali.Infrastructure/Persistence/Repositories
+mkdir -Force src/HelloTali.Infrastructure/AI
+mkdir -Force src/HelloTali.Infrastructure/Services
+```
 
 4) Database and migrations
-```
-cd HelloTali.Infrastructure
-dotnet ef migrations add InitialCreate
+```powershell
+cd src/HelloTali.Infrastructure
+dotnet ef migrations add InitialCreate --startup-project ../HelloTali.Api
 cd ../HelloTali.Api
 dotnet ef database update
 ```
 
-5) Frontend app scaffold
-```
-cd ../../
+5) Frontend app scaffold (Angular 21)
+```powershell
+cd ../../..
 mkdir -Force frontend
 cd frontend
-npx -y @angular/cli@18 new hellotali-app --standalone --routing --style=scss --ssr=false --skip-git --strict --defaults
+npx -y @angular/cli@21 new hellotali-app --standalone --routing --style=scss --ssr=false --skip-git --strict --defaults
 cd hellotali-app
-npx -y @angular/cli@18 add @angular/material --skip-confirmation --theme=indigo-pink --typography --animations
-npx -y @angular/cli@18 add @angular/pwa --skip-confirmation --project hellotali-app
-npx -y @angular/cli@18 g c features/check-in --standalone --export
-npx -y @angular/cli@18 g c features/trends --standalone --export
-npx -y @angular/cli@18 g s core/api --flat
+npx -y @angular/cli@21 add @angular/material --skip-confirmation --theme=indigo-pink --typography --animations
+npx -y @angular/cli@21 add @angular/pwa --skip-confirmation --project hellotali-app
 ```
 
-6) Frontend configuration (manual edits)
-- Set `API_BASE_URL` in `src/environments/environment.ts` to your backend URL (e.g., `https://localhost:5001`).
-- In `core/api.service.ts`, implement calls to `POST /checkins` and `GET /trends`.
-- Add routes to `app.routes.ts` for `CheckInComponent` and `TrendsComponent`.
+6) Create frontend feature structure
+```powershell
+# Features (vertical slices)
+npx -y ng g c features/check-in/pages/check-in-page --standalone
+npx -y ng g c features/check-in/components/question-card --standalone
+npx -y ng g s features/check-in/services/check-in --flat
+npx -y ng g c features/trends/pages/trends-page --standalone
+npx -y ng g c features/trends/components/trend-chart --standalone
+npx -y ng g s features/trends/services/trends --flat
+npx -y ng g c features/billing/pages/usage-page --standalone
+npx -y ng g s features/billing/services/billing --flat
+
+# Core services
+npx -y ng g s core/services/api --flat
+npx -y ng g s core/services/storage --flat
+
+# Shared components
+npx -y ng g c shared/components/loading-spinner --standalone
+npx -y ng g c shared/components/navbar --standalone
+```
 
 7) Verify builds
-```
-# Backend (in HelloTali.Api)
+```powershell
+# Backend (in backend/src/HelloTali.Api)
 dotnet build && dotnet run
 
 # Frontend (in frontend/hellotali-app)

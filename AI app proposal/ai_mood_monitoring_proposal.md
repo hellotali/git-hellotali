@@ -23,14 +23,14 @@ The App name is proposed to be hellotali
 
 ### Frontend
 
-- Angular 18 (with standalone components)
+- Angular 21 (with standalone components)
 - RxJS for reactive programming
 - Angular Material for responsive UI
 - Ionic/Capacitor (for mobile build)
 
 ### Backend
 
-- .NET 8 Web API
+- .NET 10 Web API
 - Clean Architecture
 - Entity Framework Core (data storage)
 - Azure Cognitive Services or OpenAI for AI
@@ -79,28 +79,80 @@ The App name is proposed to be hellotali
 
 **Tools:**
 
-- Microsoft Azure Text Analytics for Health
-- (perfer) OpenAI GPT-4 (via API) for semantic analysis & conversational agent
-- Google Cloud Natural Language
-- Local option (for edge/mobile): Use ONNX Runtime with distilled BERT model
+| Option | Provider/Tool | Notes |
+|--------|---------------|-------|
+| **Managed APIs** | Azure Text Analytics (incl. health) | Enterprise-ready, HIPAA-eligible |
+| | OpenAI GPT-4o-mini (preferred) | Semantic analysis, flexible prompts |
+| | Google Cloud Natural Language | Good sentiment/entity detection |
+| **Open-source (MIT-friendly)** | spaCy | Fast, customizable NLP pipeline |
+| | VADER (NLTK) | Rule-based sentiment, no training needed |
+| | ONNX Runtime + DistilBERT/RoBERTa | Emotion classification model |
+| **On-device** | ONNX or TensorFlow Lite | Private inference, offline capable |
 
-### 2. Cognitive Decline Detection
+### 2. Cognitive Decline Detection (Longitudinal)
 
-**Purpose:** Track response patterns over time
+**Purpose:** Track response patterns over time to detect subtle cognitive changes
+
+**Signals to monitor:**
+
+- Response latency trends
+- Word variety / vocabulary richness
+- Missed prompts or incomplete responses
+- Confusion indicators (repetition, off-topic responses)
 
 **Approach:**
 
 - Supervised learning (train custom model on question/answer consistency)
 - Feature inputs: timestamps, word use, forgetfulness, question complexity
 
+**Implementation path:**
+
+1. Train supervised model in Python on response patterns
+2. Export to ONNX format
+3. Serve in .NET via ONNX Runtime (or TFLite on mobile)
+
 **Tools:**
 
 - Python-trained model exported to ONNX → served in .NET backend
 - TensorFlow Lite for mobile (if running on-device)
 
+### 3. Digital Phenotyping (Optional, Opt-in)
+
+**Purpose:** Low-cost behavioral signals that supplement mood scores
+
+| Signal | Source | Privacy Notes |
+|--------|--------|---------------|
+| Step count / sleep | HealthKit / Google Fit | Requires explicit consent |
+| Screen-on rhythm | Device APIs | Aggregated only, no content |
+| Basic mobility ("home vs out") | Location services | Coarse location only |
+
+**Analysis approach:**
+
+- Combine with mood scores using trend/anomaly detection
+- Methods: z-scores, EWMA (Exponentially Weighted Moving Average)
+
 ---
 
-## 6. Big Data Consideration
+## 6. Analytics & Decisioning
+
+### Trend & Anomaly Detection
+
+| Technique | Purpose |
+|-----------|---------|
+| Personal baselines | Establish "normal" for each user |
+| Moving averages | Smooth daily fluctuations |
+| Z-scores | Detect significant deviations |
+| Multi-signal agreement | "Nudge only when multiple signals agree" |
+
+### Confidence Scoring & Guardrails
+
+- Require **high confidence** for any alert or nudge
+- **Human-in-the-loop** for high-stakes situations
+- Graceful degradation when confidence is low
+
+---
+
+## 7. Big Data Consideration (Future)
 
 ### Should You Use Big Data?
 
@@ -118,7 +170,19 @@ The App name is proposed to be hellotali
 
 ---
 
-## 7. Suggested Hardware (Optional at MVP stage)
+## 8. Privacy & Safety Principles
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Privacy-first** | Store scores/aggregates; avoid raw journals/voice by default |
+| **Consent & transparency** | Granular opt-ins per data source |
+| **Non-diagnostic** | Supportive nudges only; no medical claims |
+| **Crisis routing** | Copy routes to local helplines; not a crisis tool |
+| **Data minimization** | Pseudonymous userId; PII minimization |
+
+---
+
+## 9. Suggested Hardware (Optional at MVP stage)
 
 | Use Case                    | Hardware                                     | Notes                                          |
 | --------------------------- | -------------------------------------------- | ---------------------------------------------- |
@@ -129,7 +193,7 @@ The App name is proposed to be hellotali
 
 ---
 
-## 8. MVP Feature Flow (Your First Feature)
+## 10. MVP Feature Flow (Your First Feature)
 
 1. User opens app or is prompted once a day
 2. App asks a few cognitive + mood questions
@@ -140,7 +204,7 @@ The App name is proposed to be hellotali
 
 ---
 
-## 9. Learning Roadmap to Build the System
+## 11. Learning Roadmap to Build the System
 
 ### Phase 1: AI & Data Science Fundamentals
 
@@ -166,7 +230,7 @@ The App name is proposed to be hellotali
 ### Phase 4: Full-Stack Application Development
 
 - Angular + RxJS + Angular Material
-- .NET 8 Web API + EF Core
+- .NET 10 Web API + EF Core
 - Mobile app with Ionic/Capacitor
   - **Courses:** Angular and .NET Bootcamps (Udemy/Pluralsight)
 
@@ -178,7 +242,7 @@ The App name is proposed to be hellotali
 
 ---
 
-## 10. Outcome
+## 12. Outcome
 
 This first feature will lay the foundation for a larger platform aimed at:
 
@@ -189,7 +253,7 @@ This first feature will lay the foundation for a larger platform aimed at:
 
 ---
 
-## 11. Next Steps
+## 13. Next Steps
 
 - Finalize wireframes and questions for check-in prompts
 - Select cloud provider and AI toolchain (Azure vs OpenAI vs HuggingFace)
@@ -198,7 +262,7 @@ This first feature will lay the foundation for a larger platform aimed at:
 
 ---
 
-## 12. Would like to have
+## 14. Would like to have
 
 ### A. Sample System Architecture Diagram
 
@@ -206,15 +270,39 @@ This first feature will lay the foundation for a larger platform aimed at:
 
 ### B. Recommendation for Open-Source Models
 
-- DistilBERT (sentiment/emotion fine-tuning)
-- EmotionBERT (for mood detection)
-- T5 (for question understanding and response patterning)
+| Model | Use Case | License | Notes |
+|-------|----------|---------|-------|
+| DistilBERT (emotion fine-tuned) | Sentiment/emotion classification | Apache 2.0 | Export to ONNX |
+| RoBERTa (emotion fine-tuned) | Multi-emotion detection | MIT/Apache | Hugging Face available |
+| EmotionBERT variants | Multi-emotion classification | Check license | Research-backed |
+| VADER | Rule-based sentiment | MIT | No training needed |
+| T5 | Question understanding | Apache 2.0 | Response patterning |
 
 Use Hugging Face transformers, export as ONNX for integration into .NET
 
-### C. Walkthrough: NLP Backend Setup in .NET + Azure
+### C. AI Provider Strategy (hellotali)
 
-1. Create .NET 8 Web API project
+The system uses a pluggable AI provider architecture:
+
+```
+Feature Handler
+      ↓
+  IAiAnalyzer (interface)
+      ↓
+┌─────────────┬─────────────┬─────────────┐
+│  OpenAI     │   Azure     │   Local     │
+│  Analyzer   │  Analyzer   │  Fallback   │
+└─────────────┴─────────────┴─────────────┘
+```
+
+**Switching via `AI_PROVIDER` environment variable:**
+- `openai` (default) → OpenAiAnalyzer (GPT-4o-mini)
+- `azure` → AzureTextAnalyzer
+- `local` → LocalRuleBasedAnalyzer (zero cost, offline)
+
+### D. Walkthrough: NLP Backend Setup in .NET + Azure
+
+1. Create .NET 10 Web API project
 2. Install Azure.AI.TextAnalytics SDK
 3. Store credentials in secure config (KeyVault or appsettings.json)
 4. Define NLP analysis service using Azure SDK:
